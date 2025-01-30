@@ -20,7 +20,13 @@
     <div class="content-wrapper">
       <div class="user-profile">
         <div class="avatar-wrapper">
-          <img :src="user?.avatar" class="detail-avatar" v-if="user" />
+          <img
+            :src="user?.avatar"
+            class="detail-avatar"
+            :alt="user?.nickname"
+            @error="handleAvatarError"
+            v-if="user"
+          />
         </div>
         <h3 class="user-name">
           {{ user.nickname }}
@@ -123,6 +129,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
+import { defaultAvatar } from "../service/services";
 import type { SearchUserInfo, UserInfoResponse } from "../types";
 import { getUserInfo } from "../service/services";
 
@@ -149,6 +156,11 @@ const userHomeUrl = computed(() => {
 const isAuthor = computed(() => {
   return props.user.uuid === "755f3465ed2b4338959ff26d671e399b";
 });
+
+const handleAvatarError = (e: Event) => {
+  const img = e.target as HTMLImageElement;
+  img.src = defaultAvatar;
+};
 </script>
 
 <style scoped>

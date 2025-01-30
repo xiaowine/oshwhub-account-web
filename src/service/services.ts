@@ -1,4 +1,7 @@
 import type { SearchResult, SortType, UserInfoResponse } from "../types";
+// 默认头像
+export const defaultAvatar = "/image/avatar-default.png";
+
 export const BASE_URL = "https://s.2bcnm.top";
 export const header = {
   accept: "application/json, text/plain, */*",

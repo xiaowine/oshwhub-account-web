@@ -15,11 +15,12 @@
               user.avatar.startsWith('//')
                 ? 'https:' + user.avatar
                 : user.avatar === ''
-                ? '/image/avatar-default.png'
+                ? defaultAvatar
                 : user.avatar
             "
             class="avatar"
             :alt="user.nickname"
+            @error="handleAvatarError"
           />
           <div class="user-info">
             <h3>{{ user.nickname }}</h3>
@@ -30,10 +31,7 @@
 
       <!-- 骨架屏，用于所有加载状态 -->
       <template v-if="loading">
-        <SkeletonCard
-          v-for="n in users.length ? 4 : 20"
-          :key="`skeleton-${n}`"
-        />
+        <SkeletonCard v-for="n in 20" :key="`skeleton-${n}`" />
       </template>
 
       <!-- 无数据提示 -->
@@ -55,6 +53,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 import type { SearchUserInfo } from "../types";
+import { defaultAvatar } from "../service/services";
 import ModalWrapper from "./ModalWrapper.vue";
 import UserDetailView from "./UserDetailView.vue";
 import SkeletonCard from "./SkeletonCard.vue";
@@ -75,6 +74,12 @@ const showUserDetails = (user: SearchUserInfo) => {
 };
 
 const emit = defineEmits(["loadMore"]);
+
+// 处理头像加载失败
+const handleAvatarError = (e: Event) => {
+  const img = e.target as HTMLImageElement;
+  img.src = defaultAvatar;
+};
 
 // 检测滚动到底部的函数
 const checkScroll = () => {
