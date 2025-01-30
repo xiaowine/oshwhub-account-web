@@ -27,6 +27,7 @@
                 ($event.target as HTMLInputElement).value
               )
             "
+            @keyup.enter="handleSearch"
             type="text"
             placeholder="输入用户昵称"
           />
