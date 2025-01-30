@@ -203,14 +203,13 @@ const exportAsImage = async () => {
 const generateQR = async () => {
   try {
     const url = `https://oshwhub.com/${props.user.username}`;
+    const style = getComputedStyle(document.documentElement);
     qrDataUrl.value = await QRCode.toDataURL(url, {
       width: 100,
       margin: 1,
       color: {
-        dark: getComputedStyle(document.documentElement)
-          .getPropertyValue("--text-color")
-          .trim(),
-        light: "#FFFFFF",
+        dark: style.getPropertyValue("--text-color").trim(),
+        light: style.getPropertyValue("--card-background").trim(),
       },
     });
   } catch (err) {
@@ -407,7 +406,7 @@ defineExpose({
   color: white;
   padding: 4px 12px;
   border-radius: 8px;
-  font-size: 0.9em;
+  font-size: 0.7em;
   opacity: 0.9;
   z-index: 1;
   box-shadow: var(--shadow);
@@ -420,14 +419,13 @@ defineExpose({
   position: absolute;
   top: 10px;
   right: 10px;
-  /* top: 55px;
-  left: 25px; */
-  padding: 6px;
+  padding: 2px;
   width: 60px;
   height: 60px;
-  background: white;
+  background: var(--card-background);
   border-radius: 8px;
   box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
 }
 
 .qr-code img {
