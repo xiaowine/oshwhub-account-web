@@ -1,26 +1,123 @@
 <template>
   <div class="export-card" ref="exportCardRef">
-    <div class="card-content">
-      <img
-        :src="user?.avatar"
-        class="card-avatar"
-        :alt="user?.nickname"
-        @error="handleAvatarError"
-      />
-      <h3 class="card-title">{{ user.nickname }}</h3>
-      <p class="card-username">@{{ user.username }}</p>
-      <div class="card-stats">
-        <div class="stat-item">
-          <span class="stat-value">{{ user.count.followers }}</span>
-          <span class="stat-label">关注者</span>
+    <div class="card-content" :class="{ 'with-detail': showDetail }">
+      <!-- 基础信息部分 -->
+      <div class="basic-section">
+        <img
+          :src="currentAvatar"
+          class="card-avatar"
+          :alt="user?.nickname"
+          @error="handleAvatarError"
+        />
+        <h3 class="card-title">{{ user.nickname }}</h3>
+        <p class="card-username">@{{ user.username }}</p>
+        <div class="card-stats">
+          <div class="stat-item">
+            <span class="stat-value">{{ user.count.followers }}</span>
+            <span class="stat-label">关注者</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ user.count.following }}</span>
+            <span class="stat-label">关注</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ user.count.public_projects }}</span>
+            <span class="stat-label">项目</span>
+          </div>
         </div>
-        <div class="stat-item">
-          <span class="stat-value">{{ user.count.following }}</span>
-          <span class="stat-label">关注</span>
+      </div>
+
+      <!-- 详细信息部分 -->
+      <div v-if="showDetail" class="detail-section">
+        <div class="detail-group">
+          <h4 class="detail-title">账号信息</h4>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">FB官方</span>
+              <span class="detail-value">{{
+                userInfo?.result.is_fp_office_account ? "是" : "否"
+              }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">积分</span>
+              <span class="detail-value">{{ userInfo?.result.points }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">得分</span>
+              <span class="detail-value">{{ user._score }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">UUID</span>
+              <span class="detail-value">{{ user.uuid }}</span>
+            </div>
+          </div>
         </div>
-        <div class="stat-item">
-          <span class="stat-value">{{ user.count.public_projects }}</span>
-          <span class="stat-label">项目</span>
+
+        <div class="detail-group">
+          <h4 class="detail-title">项目统计</h4>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">公开项目</span>
+              <span class="detail-value">{{ user.count.public_projects }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">所有项目</span>
+              <span class="detail-value">{{ user.count.all_projects }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">归档项目</span>
+              <span class="detail-value">{{
+                user.count.archived_projects
+              }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">参与项目</span>
+              <span class="detail-value">{{ user.count.joined_projects }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-group" v-if="!user.team && userInfo?.result">
+          <h4 class="detail-title">个人信息</h4>
+          <div class="detail-grid">
+            <div class="detail-item" v-if="userInfo.result.info.career">
+              <span class="detail-label">职业</span>
+              <span class="detail-value">{{
+                userInfo.result.info.career
+              }}</span>
+            </div>
+            <div class="detail-item" v-if="userInfo.result.info.companycompany">
+              <span class="detail-label">公司</span>
+              <span class="detail-value">{{
+                userInfo.result.info.companycompany
+              }}</span>
+            </div>
+            <div class="detail-item" v-if="userInfo.result.info.school">
+              <span class="detail-label">学校</span>
+              <span class="detail-value">{{
+                userInfo.result.info.school
+              }}</span>
+            </div>
+            <div class="detail-item" v-if="userInfo.result.info.country">
+              <span class="detail-label">所在地</span>
+              <span class="detail-value">{{
+                userInfo.result.info.country
+              }}</span>
+            </div>
+            <div class="detail-item" v-if="userInfo.result.info.site">
+              <span class="detail-label">个人网站</span>
+              <span class="detail-value">{{ userInfo.result.info.site }}</span>
+            </div>
+            <div
+              class="detail-item description"
+              v-if="userInfo.result.introduction"
+            >
+              <span class="detail-label">个人简介</span>
+              <span class="detail-value">{{
+                userInfo.result.introduction
+              }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -29,26 +126,45 @@
 
 <script setup lang="ts">
 import { nextTick, ref } from "vue";
-import type { SearchUserInfo } from "../types";
+import type { SearchUserInfo, UserInfoResponse } from "../types";
 import { defaultAvatar } from "../service/services";
 import html2canvas from "html2canvas";
 
 const props = defineProps<{
   user: SearchUserInfo;
+  showDetail?: boolean;
+  userInfo?: UserInfoResponse;
 }>();
 
 const emit = defineEmits(["update:modelValue"]);
 
 const exportCardRef = ref<HTMLElement | null>(null);
 
+const currentAvatar = ref(props.user?.avatar || defaultAvatar);
+
 const handleAvatarError = (e: Event) => {
-  const img = e.target as HTMLImageElement;
-  img.src = defaultAvatar;
+  currentAvatar.value = defaultAvatar;
+};
+
+const preloadImage = (url: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve();
+    img.onerror = () => {
+      console.error("Image load failed:", url);
+      reject();
+    };
+    img.src = url;
+  });
 };
 
 const exportAsImage = async () => {
   try {
-    // 等待组件渲染完成
+    if (currentAvatar.value !== defaultAvatar) {
+      await preloadImage(currentAvatar.value);
+    }
+
     await nextTick();
     await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -58,6 +174,8 @@ const exportAsImage = async () => {
       backgroundColor: null,
       scale: 2,
       logging: false,
+      useCORS: true,
+      allowTaint: false,
     });
 
     const link = document.createElement("a");
@@ -78,19 +196,65 @@ defineExpose({
 .export-card {
   position: fixed;
   left: -9999px;
-  width: 300px;
   background: var(--card-background);
   border-radius: 20px;
   overflow: hidden;
   padding: 20px;
   box-shadow: var(--shadow);
+  width: v-bind("showDetail ? '800px' : '300px'");
 }
 
 .card-content {
   display: flex;
+  gap: 20px;
+}
+
+.card-content.with-detail {
+  flex-direction: row;
+}
+
+.basic-section {
+  flex: 1;
+  display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
+}
+
+.detail-section {
+  flex: 2;
+  padding-left: 20px;
+  border-left: 1px solid var(--border-color);
+}
+
+.detail-group {
+  margin-bottom: 20px;
+}
+
+.detail-title {
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--primary-color);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.detail-item {
+  background: var(--background-color);
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item.description {
+  grid-column: 1 / -1;
 }
 
 .card-avatar {
@@ -136,5 +300,15 @@ defineExpose({
 .stat-label {
   font-size: 0.9em;
   color: var(--text-secondary);
+}
+.detail-label {
+  color: var(--text-secondary);
+  font-size: 0.8em;
+}
+
+.detail-value {
+  color: var(--text-color);
+  font-weight: 500;
+  font-size: 0.9em;
 }
 </style>

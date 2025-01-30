@@ -6,7 +6,7 @@
           :class="['toggle-btn', { active: !showDetail }]"
           @click="showDetail = false"
         >
-          简介
+          简洁
         </button>
         <button
           :class="['toggle-btn', { active: showDetail }]"
@@ -129,7 +129,12 @@
       </div>
     </div>
   </div>
-  <ExportCard ref="exportCardRef" :user="user" />
+  <ExportCard
+    ref="exportCardRef"
+    :user="user"
+    :show-detail="showDetail"
+    :user-info="userInfo"
+  />
 </template>
 
 <script setup lang="ts">
