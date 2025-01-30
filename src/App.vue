@@ -53,16 +53,18 @@ const handleSearch = async () => {
   searchResults.value = [];
   currentPage.value = 1;
   hasMore.value = true;
-  await loadMore();
+  await loadMore(); // 直接调用 loadMore，统一处理加载逻辑
 };
 
 const loadMore = async () => {
-  // 防止重复加载
-  if (loading.value || !hasMore.value || error.value) return;
+  if (!hasMore.value || error.value || loading.value) return;
 
   loading.value = true;
 
   try {
+    // 添加小延迟以便看到骨架屏效果(可选)
+    // await new Promise((resolve) => setTimeout(resolve, 300));
+
     const data = await searchUsers(
       keywords.value,
       pageSize,

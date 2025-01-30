@@ -1,32 +1,46 @@
 <template>
   <div>
     <div v-if="error" class="error-message">{{ error }}</div>
-    <div v-else-if="users.length" class="user-grid">
-      <div
-        v-for="user in users"
-        :key="user.uuid"
-        class="user-card"
-        @click="showUserDetails(user)"
-      >
-        <img
-          :src="
-            user.avatar.startsWith('//')
-              ? 'https:' + user.avatar
-              : user.avatar === ''
-              ? '/image/avatar-default.png'
-              : user.avatar
-          "
-          class="avatar"
-          :alt="user.nickname"
-        />
-        <div class="user-info">
-          <h3>{{ user.nickname }}</h3>
-          <p>@{{ user.username }}</p>
+    <div v-else class="user-grid">
+      <!-- 显示现有数据 -->
+      <template v-if="users.length">
+        <div
+          v-for="user in users"
+          :key="user.uuid"
+          class="user-card"
+          @click="showUserDetails(user)"
+        >
+          <img
+            :src="
+              user.avatar.startsWith('//')
+                ? 'https:' + user.avatar
+                : user.avatar === ''
+                ? '/image/avatar-default.png'
+                : user.avatar
+            "
+            class="avatar"
+            :alt="user.nickname"
+          />
+          <div class="user-info">
+            <h3>{{ user.nickname }}</h3>
+            <p>@{{ user.username }}</p>
+          </div>
         </div>
-      </div>
-    </div>
-    <div v-else class="no-data">暂无数据</div>
+      </template>
 
+      <!-- 骨架屏，用于所有加载状态 -->
+      <template v-if="loading">
+        <SkeletonCard
+          v-for="n in users.length ? 4 : 20"
+          :key="`skeleton-${n}`"
+        />
+      </template>
+
+      <!-- 无数据提示 -->
+      <div v-if="!users.length && !loading" class="no-data">暂无数据</div>
+    </div>
+
+    <!-- 加载状态/无更多数据提示 -->
     <div v-if="!error && users.length > 0" :class="['load-more', { loading }]">
       <div v-if="loading" class="loading-indicator">加载中...</div>
       <div v-else-if="!hasMore" class="no-more">没有更多数据了</div>
@@ -43,6 +57,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import type { SearchUserInfo } from "../types";
 import ModalWrapper from "./ModalWrapper.vue";
 import UserDetailView from "./UserDetailView.vue";
+import SkeletonCard from "./SkeletonCard.vue";
 
 defineProps<{
   users: SearchUserInfo[];
@@ -72,7 +87,7 @@ const checkScroll = () => {
     window.innerHeight || document.documentElement.clientHeight;
 
   // 当距离底部小于100px时触发加载
-  if (scrollHeight - scrollTop - clientHeight < 100) {
+  if (scrollHeight - scrollTop - clientHeight < 300) {
     emit("loadMore");
   }
 };
@@ -107,6 +122,8 @@ onUnmounted(() => {
   gap: 20px;
   padding: 20px;
   margin-top: 20px;
+  transition: opacity 0.3s ease;
+  position: relative; /* 添加相对定位 */
 }
 
 .user-card {
@@ -331,5 +348,27 @@ onUnmounted(() => {
   margin-right: 8px;
   animation: spin 1s linear infinite;
   vertical-align: middle;
+}
+
+/* 优化骨架屏动画 */
+.skeleton-card {
+  animation: fadeIn 0.3s ease-in forwards;
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 为骨架屏添加交错动画 */
+.skeleton-card {
+  animation-delay: calc(var(--index, 0) * 0.1s);
 }
 </style>
