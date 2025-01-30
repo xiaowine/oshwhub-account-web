@@ -1,6 +1,9 @@
 <template>
   <div class="export-card" ref="exportCardRef">
     <div class="watermark">OshwHub<br />用户卡片</div>
+    <div class="qr-code" v-if="qrDataUrl">
+      <img :src="qrDataUrl" alt="QR Code" />
+    </div>
     <div class="card-content" :class="{ 'with-detail': showDetail }">
       <!-- 左侧基础信息部分 -->
       <div class="basic-section">
@@ -134,6 +137,7 @@ import { nextTick, ref, watchEffect } from "vue";
 import type { SearchUserInfo, UserInfoResponse } from "../types";
 import { defaultAvatar } from "../service/services";
 import html2canvas from "html2canvas";
+import QRCode from "qrcode";
 
 const props = defineProps<{
   user: SearchUserInfo;
@@ -147,15 +151,7 @@ const exportCardRef = ref<HTMLElement | null>(null);
 
 const currentAvatar = ref(defaultAvatar);
 
-// 添加监听和处理逻辑
-watchEffect(() => {
-  const avatarUrl = props.user?.avatar;
-  if (!avatarUrl || avatarUrl.includes("u.lceda.cn/images/avatar-default")) {
-    currentAvatar.value = defaultAvatar;
-  } else {
-    currentAvatar.value = avatarUrl;
-  }
-});
+const qrDataUrl = ref("");
 
 const handleAvatarError = () => {
   currentAvatar.value = defaultAvatar;
@@ -204,6 +200,35 @@ const exportAsImage = async () => {
   }
 };
 
+const generateQR = async () => {
+  try {
+    const url = `https://oshwhub.com/${props.user.username}`;
+    qrDataUrl.value = await QRCode.toDataURL(url, {
+      width: 100,
+      margin: 1,
+      color: {
+        dark: getComputedStyle(document.documentElement)
+          .getPropertyValue("--text-color")
+          .trim(),
+        light: "#FFFFFF",
+      },
+    });
+  } catch (err) {
+    console.error("QR Code generation failed:", err);
+  }
+};
+// 添加监听和处理逻辑
+watchEffect(() => {
+  const avatarUrl = props.user?.avatar;
+  if (!avatarUrl || avatarUrl.includes("u.lceda.cn/images/avatar-default")) {
+    currentAvatar.value = defaultAvatar;
+  } else {
+    currentAvatar.value = avatarUrl;
+  }
+  if (props.user?.username) {
+    generateQR();
+  }
+});
 defineExpose({
   exportAsImage,
 });
@@ -240,6 +265,7 @@ defineExpose({
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  padding-bottom: 20px;
 }
 
 .detail-section {
@@ -247,11 +273,15 @@ defineExpose({
   min-width: 280px;
   padding: v-bind("showDetail ? '20px 0 0 0' : '0 0 0 20px'");
   border-left: v-bind("showDetail ? 'none' : '1px solid var(--border-color)'");
-  border-top: v-bind("showDetail ? '1px solid var(--border-color)' : 'none'");
+  padding-bottom: 0;
 }
 
 .detail-group {
   margin-bottom: 20px;
+}
+
+.detail-group:last-child {
+  margin-bottom: 0;
 }
 
 .detail-title {
@@ -384,5 +414,25 @@ defineExpose({
   text-align: center;
   font-weight: 500;
   letter-spacing: 1px;
+}
+
+.qr-code {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  /* top: 55px;
+  left: 25px; */
+  padding: 6px;
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.qr-code img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 </style>
