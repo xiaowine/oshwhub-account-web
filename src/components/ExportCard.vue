@@ -1,7 +1,7 @@
 <template>
   <div class="export-card" ref="exportCardRef">
     <div class="card-content" :class="{ 'with-detail': showDetail }">
-      <!-- 基础信息部分 -->
+      <!-- 左侧基础信息部分 -->
       <div class="basic-section">
         <img
           :src="currentAvatar"
@@ -11,6 +11,8 @@
         />
         <h3 class="card-title">{{ user.nickname }}</h3>
         <p class="card-username">@{{ user.username }}</p>
+
+        <!-- 基础统计信息 -->
         <div class="card-stats">
           <div class="stat-item">
             <span class="stat-value">{{ user.count.followers }}</span>
@@ -25,41 +27,37 @@
             <span class="stat-label">项目</span>
           </div>
         </div>
-      </div>
 
-      <!-- 详细信息部分 -->
-      <div v-if="showDetail" class="detail-section">
-        <div class="detail-group">
-          <h4 class="detail-title">账号信息</h4>
-          <div class="detail-grid">
-            <div class="detail-item">
-              <span class="detail-label">FB官方</span>
-              <span class="detail-value">{{
-                userInfo?.result.is_fp_office_account ? "是" : "否"
-              }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">积分</span>
-              <span class="detail-value">{{ userInfo?.result.points }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">得分</span>
-              <span class="detail-value">{{ user._score }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">UUID</span>
-              <span class="detail-value">{{ user.uuid }}</span>
-            </div>
+        <!-- 添加账号基本信息到左侧 -->
+        <div v-if="showDetail" class="basic-info-group">
+          <div class="info-item">
+            <span class="info-label">账号类型</span>
+            <span class="info-value">{{
+              user.team ? "团队账号" : "个人账号"
+            }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">FB官方</span>
+            <span class="info-value">{{
+              userInfo?.result.is_fp_office_account ? "是" : "否"
+            }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">积分</span>
+            <span class="info-value">{{ userInfo?.result.points }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">注册时间</span>
+            <span class="info-value">{{ userInfo?.result.created_at }}</span>
           </div>
         </div>
+      </div>
 
+      <!-- 右侧详细信息部分 -->
+      <div v-if="showDetail" class="detail-section">
         <div class="detail-group">
           <h4 class="detail-title">项目统计</h4>
           <div class="detail-grid">
-            <div class="detail-item">
-              <span class="detail-label">公开项目</span>
-              <span class="detail-value">{{ user.count.public_projects }}</span>
-            </div>
             <div class="detail-item">
               <span class="detail-label">所有项目</span>
               <span class="detail-value">{{ user.count.all_projects }}</span>
@@ -73,6 +71,10 @@
             <div class="detail-item">
               <span class="detail-label">参与项目</span>
               <span class="detail-value">{{ user.count.joined_projects }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">公开项目</span>
+              <span class="detail-value">{{ user.count.public_projects }}</span>
             </div>
           </div>
         </div>
@@ -104,7 +106,10 @@
                 userInfo.result.info.country
               }}</span>
             </div>
-            <div class="detail-item" v-if="userInfo.result.info.site">
+            <div
+              class="detail-item description"
+              v-if="userInfo.result.info.site"
+            >
               <span class="detail-label">个人网站</span>
               <span class="detail-value">{{ userInfo.result.info.site }}</span>
             </div>
@@ -125,22 +130,32 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref } from "vue";
+import { nextTick, ref, watchEffect } from "vue";
 import type { SearchUserInfo, UserInfoResponse } from "../types";
 import { defaultAvatar } from "../service/services";
 import html2canvas from "html2canvas";
 
 const props = defineProps<{
   user: SearchUserInfo;
-  showDetail?: boolean;
-  userInfo?: UserInfoResponse;
+  showDetail: boolean;
+  userInfo: UserInfoResponse;
 }>();
 
 const emit = defineEmits(["update:modelValue"]);
 
 const exportCardRef = ref<HTMLElement | null>(null);
 
-const currentAvatar = ref(props.user?.avatar || defaultAvatar);
+const currentAvatar = ref(defaultAvatar);
+
+// 添加监听和处理逻辑
+watchEffect(() => {
+  const avatarUrl = props.user?.avatar;
+  if (!avatarUrl || avatarUrl.includes("u.lceda.cn/images/avatar-default")) {
+    currentAvatar.value = defaultAvatar;
+  } else {
+    currentAvatar.value = avatarUrl;
+  }
+});
 
 const handleAvatarError = (e: Event) => {
   currentAvatar.value = defaultAvatar;
@@ -179,7 +194,9 @@ const exportAsImage = async () => {
     });
 
     const link = document.createElement("a");
-    link.download = `${props.user.nickname}-oshwhub.png`;
+    link.download = `${props.user.nickname}-oshwhub${
+      props.showDetail ? "" : "-simple"
+    }.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
   } catch (error) {
@@ -201,7 +218,7 @@ defineExpose({
   overflow: hidden;
   padding: 20px;
   box-shadow: var(--shadow);
-  width: v-bind("showDetail ? '800px' : '300px'");
+  width: v-bind("showDetail ? '700px' : '300px'");
 }
 
 .card-content {
@@ -215,6 +232,7 @@ defineExpose({
 
 .basic-section {
   flex: 1;
+  min-width: 280px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -222,7 +240,7 @@ defineExpose({
 }
 
 .detail-section {
-  flex: 2;
+  flex: 1;
   padding-left: 20px;
   border-left: 1px solid var(--border-color);
 }
@@ -240,7 +258,7 @@ defineExpose({
 
 .detail-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
 }
 
@@ -310,5 +328,30 @@ defineExpose({
   color: var(--text-color);
   font-weight: 500;
   font-size: 0.9em;
+}
+
+.basic-info-group {
+  width: 100%;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.info-label {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.info-value {
+  color: var(--text-color);
+  font-weight: 500;
 }
 </style>
