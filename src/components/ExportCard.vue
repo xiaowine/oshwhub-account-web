@@ -182,8 +182,11 @@ const exportAsImage = async () => {
 
     if (!exportCardRef.value) return;
 
+    const style = getComputedStyle(document.documentElement);
+    const isDark = style.getPropertyValue("--is-dark").trim() === "true";
+
     const canvas = await html2canvas(exportCardRef.value, {
-      backgroundColor: null,
+      backgroundColor: isDark ? "#1a1a1a" : "#ffffff",
       scale: 2,
       logging: false,
       useCORS: true,
@@ -205,12 +208,13 @@ const generateQR = async () => {
   try {
     const url = `https://oshwhub.com/${props.user.username}`;
     const style = getComputedStyle(document.documentElement);
+    const isDark = style.getPropertyValue("--is-dark").trim() === "true";
     qrDataUrl.value = await QRCode.toDataURL(url, {
       width: 100,
       margin: 1,
       color: {
-        dark: style.getPropertyValue("--text-color").trim(),
-        light: style.getPropertyValue("--card-background").trim(),
+        dark: isDark ? "#ffffff" : "#000000",
+        light: isDark ? "#1a1a1a" : "#ffffff",
       },
     });
   } catch (err) {
@@ -242,7 +246,7 @@ defineExpose({
   border-radius: 20px;
   overflow: hidden;
   padding: 20px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), 0 0 20px rgba(0, 0, 0, 0.1);
   width: v-bind("showDetail ? 'min(700px, 95vw)' : '300px'");
   position: relative;
 }
@@ -306,6 +310,8 @@ defineExpose({
   display: flex;
   flex-direction: column;
   gap: 4px;
+  border: 1px solid var(--border-color);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .detail-item.description {
@@ -324,6 +330,7 @@ defineExpose({
   margin: 0;
   font-size: 1.5em;
   color: var(--text-color);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .card-username {
@@ -350,6 +357,7 @@ defineExpose({
   font-size: 1.2em;
   font-weight: bold;
   color: var(--text-color);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .stat-label {
@@ -410,9 +418,9 @@ defineExpose({
   padding: 4px 12px;
   border-radius: 8px;
   font-size: 0.7em;
-  opacity: 0.9;
+  opacity: 0.95;
   z-index: 1;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), 0 2px 4px rgba(0, 0, 0, 0.2);
   text-align: center;
   font-weight: 500;
   letter-spacing: 1px;
@@ -427,7 +435,7 @@ defineExpose({
   height: 60px;
   background: var(--card-background);
   border-radius: 8px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), 0 2px 4px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--border-color);
 }
 
@@ -443,8 +451,23 @@ defineExpose({
   right: 10px;
   font-size: 0.7em;
   color: var(--text-secondary);
-  opacity: 0.5;
+  opacity: 0.4;
   font-family: monospace;
   letter-spacing: 0.5px;
+  mix-blend-mode: difference;
+}
+
+@media (prefers-color-scheme: dark) {
+  .export-card {
+    box-shadow: var(--shadow), 0 0 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .detail-item {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .qr-code {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
 }
 </style>
