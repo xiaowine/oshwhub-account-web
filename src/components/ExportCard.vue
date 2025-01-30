@@ -129,6 +129,7 @@
         </div>
       </div>
     </div>
+    <div class="project-link">oshwhub.xiaowine.cc</div>
   </div>
 </template>
 
@@ -265,6 +266,7 @@ defineExpose({
   align-items: center;
   gap: 12px;
   padding-bottom: 20px;
+  margin-bottom: 10px; /* 为底部链接留出空间 */
 }
 
 .detail-section {
@@ -273,6 +275,7 @@ defineExpose({
   padding: v-bind("showDetail ? '20px 0 0 0' : '0 0 0 20px'");
   border-left: v-bind("showDetail ? 'none' : '1px solid var(--border-color)'");
   padding-bottom: 0;
+  margin-bottom: 20px; /* 为底部链接留出空间 */
 }
 
 .detail-group {
@@ -280,7 +283,7 @@ defineExpose({
 }
 
 .detail-group:last-child {
-  margin-bottom: 0;
+  margin-bottom: 10px; /* 为底部链接留出空间 */
 }
 
 .detail-title {
@@ -432,5 +435,16 @@ defineExpose({
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.project-link {
+  position: absolute;
+  bottom: 6px;
+  right: 10px;
+  font-size: 0.7em;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  font-family: monospace;
+  letter-spacing: 0.5px;
 }
 </style>
