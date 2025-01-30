@@ -144,7 +144,7 @@ import type { SearchUserInfo, UserInfoResponse } from "../types";
 import { getUserInfo } from "../service/services";
 import ExportCard from "./ExportCard.vue";
 
-const userInfo = ref<UserInfoResponse>();
+const userInfo = ref<UserInfoResponse>({} as UserInfoResponse);
 
 const props = defineProps<{
   user: SearchUserInfo;

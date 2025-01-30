@@ -157,7 +157,7 @@ watchEffect(() => {
   }
 });
 
-const handleAvatarError = (e: Event) => {
+const handleAvatarError = () => {
   currentAvatar.value = defaultAvatar;
 };
 
