@@ -1,24 +1,60 @@
 <template>
   <div class="search-box">
-    <h2 class="search-title">用户搜索</h2>
-    <div class="search-container">
-      <div class="input-group">
-        <label for="keywords">用户昵称</label>
-        <input
-          id="keywords"
-          :value="keywords"
-          @input="
-            $emit('update:keywords', ($event.target as HTMLInputElement).value)
-          "
-          type="text"
-          placeholder="请输入用户名或昵称"
-        />
-        <span class="input-description">昵称搜索，至少2个字符</span>
+    <div class="search-header">
+      <h2 class="search-title">用户搜索</h2>
+      <div class="search-tabs">
+        <button class="search-button" @click="handleSearch">
+          <svg class="search-icon" viewBox="0 0 24 24">
+            <path
+              fill="currentColor"
+              d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+            />
+          </svg>
+          搜索
+        </button>
+      </div>
+    </div>
+
+    <div class="search-body">
+      <div class="input-wrapper">
+        <div class="input-group">
+          <input
+            id="keywords"
+            :value="keywords"
+            @input="
+              $emit(
+                'update:keywords',
+                ($event.target as HTMLInputElement).value
+              )
+            "
+            type="text"
+            placeholder="输入用户昵称"
+          />
+          <label for="keywords" class="floating-label">用户昵称</label>
+        </div>
+
+        <div class="select-group">
+          <select
+            id="sortType"
+            :value="sortType"
+            @change="
+              $emit(
+                'update:sortType',
+                ($event.target as HTMLSelectElement).value
+              )
+            "
+          >
+            <option value="">综合排序</option>
+            <option value="follower_count">粉丝数</option>
+          </select>
+          <label for="sortType" class="floating-label">排序方式</label>
+        </div>
       </div>
 
-      <div class="checkbox-group">
+      <div class="checkbox-wrapper">
         <label class="checkbox-label">
           <input
+            type="checkbox"
             :checked="fuzzySearch"
             @change="
               $emit(
@@ -26,34 +62,11 @@
                 ($event.target as HTMLInputElement).checked
               )
             "
-            type="checkbox"
           />
-          模糊搜索
+          <span class="checkbox-text">模糊搜索</span>
         </label>
-        <span class="input-description"
-          >开启后将显示所有结果<br />关闭则只显示第一个完全匹配</span
-        >
+        <span class="checkbox-desc">关闭则只显示完全匹配的第一个结果</span>
       </div>
-
-      <div class="select-group">
-        <label for="sortType">排序方式</label>
-        <select
-          id="sortType"
-          :value="sortType"
-          @change="
-            $emit('update:sortType', ($event.target as HTMLSelectElement).value)
-          "
-        >
-          <option value="">综合排序</option>
-          <option value="follower_count">粉丝数</option>
-        </select>
-        <span class="input-description">选择结果的排序方式</span>
-      </div>
-
-      <button @click="handleSearch">
-        <span class="search-icon">🔍</span>
-        搜索
-      </button>
     </div>
   </div>
 </template>
@@ -80,87 +93,92 @@ const handleSearch = () => {
 
 <style scoped>
 .search-box {
-  background: var(--card-background);
   padding: 24px;
   border-radius: var(--border-radius);
+  background: var(--card-background);
   box-shadow: var(--shadow);
 }
 
+.search-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
 .search-title {
-  margin: 0 0 20px 0;
-  color: var(--text-color);
+  margin: 0;
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-color);
+  position: relative;
 }
 
-.search-container {
-  display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+.search-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 40px;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 2px;
 }
 
-.input-group {
+.search-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 20px;
 }
 
-.input-group label {
-  font-weight: 500;
-  color: var(--text-color);
+.input-wrapper {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: start;
 }
 
-.input-description {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin-top: 4px;
-}
-
-input[type="text"],
-input[type="number"] {
-  padding: 8px 12px;
-  background: var(--background-color);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  font-size: 14px;
-  transition: var(--transition);
-  outline: none;
+.input-group,
+.select-group {
+  position: relative;
   width: 100%;
 }
 
-input[type="text"]:focus,
-input[type="number"]:focus {
+input,
+select {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--background-color);
+  color: var(--text-color);
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+input:focus,
+select:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(var(--primary-color), 0.2);
+  box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+}
+
+.floating-label {
+  position: absolute;
+  left: 12px;
+  top: -10px;
+  padding: 0 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
   background: var(--card-background);
+  pointer-events: none;
 }
 
-input[type="number"] {
-  width: 100px;
-}
-
-label {
+.checkbox-wrapper {
   display: flex;
   align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  user-select: none;
-  color: var(--text-color);
-}
-
-input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  accent-color: var(--primary-color);
-}
-
-.checkbox-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .checkbox-label {
@@ -168,55 +186,48 @@ input[type="checkbox"] {
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  user-select: none;
-  color: var(--text-color);
+}
+
+.checkbox-text {
   font-weight: 500;
+  color: var(--text-color);
 }
 
-.checkbox-label input[type="checkbox"] {
-  background: var(--background-color);
-  border-color: var(--border-color);
+.checkbox-desc {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
-button {
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary-color);
+}
+
+.search-button {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
+  padding: 10px 20px;
   background: var(--primary-color);
   color: white;
   border: none;
-  padding: 8px 24px;
   border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: var(--transition);
+  font-size: 1rem;
   font-weight: 500;
-  height: 40px;
-  align-self: flex-end;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-button:hover {
+.search-button:hover {
   background: var(--primary-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: var(--hover-shadow);
 }
 
-button:active {
-  transform: translateY(0);
-}
-
 .search-icon {
-  font-size: 1.1em;
-}
-
-@media (max-width: 768px) {
-  .search-container {
-    grid-template-columns: 1fr;
-  }
-
-  button {
-    width: 100%;
-  }
+  width: 20px;
+  height: 20px;
 }
 
 @media (max-width: 768px) {
@@ -224,79 +235,35 @@ button:active {
     padding: 16px;
   }
 
-  .search-title {
-    font-size: 1.2rem;
-    margin-bottom: 15px;
-  }
-
-  .search-container {
+  .input-wrapper {
     grid-template-columns: 1fr;
-    gap: 15px;
   }
 
-  .input-group {
-    gap: 6px;
+  .search-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
   }
 
-  input[type="text"],
-  input[type="number"] {
-    padding: 10px;
-    font-size: 16px; /* 防止 iOS 自动缩放 */
-  }
-
-  input[type="number"] {
+  .search-button {
     width: 100%;
+    justify-content: center;
   }
 
-  .checkbox-group {
-    margin: 8px 0;
-  }
-
-  button {
-    width: 100%;
-    height: 44px; /* 增加移动端按钮点击区域 */
+  input,
+  select {
+    padding: 10px 14px;
     font-size: 16px;
-    margin-top: 8px;
-  }
-
-  .input-description {
-    font-size: 12px;
   }
 }
 
-/* 适配超小屏幕 */
 @media (max-width: 375px) {
   .search-box {
     padding: 12px;
   }
 
   .search-title {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
-}
-
-.select-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-select {
-  padding: 8px 12px;
-  background: var(--background-color);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  font-size: 14px;
-  transition: var(--transition);
-  outline: none;
-  cursor: pointer;
-  width: 100%;
-}
-
-select:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
-  background: var(--card-background);
 }
 </style>
