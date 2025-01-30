@@ -13,7 +13,7 @@
           type="text"
           placeholder="请输入用户名或昵称"
         />
-        <span class="input-description">支持搜索昵称，至少2个字符</span>
+        <span class="input-description">昵称搜索，至少2个字符</span>
       </div>
 
       <div class="checkbox-group">
