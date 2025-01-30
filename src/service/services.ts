@@ -1,6 +1,10 @@
 import type { SearchResult, SortType, UserInfoResponse } from "../types";
-// 默认头像
-export const defaultAvatar = "/image/avatar-default.png";
+
+// 修改默认头像路径，使用 URL 构造
+export const defaultAvatar = new URL(
+  "../assets/avatar-default.png",
+  import.meta.url
+).href;
 
 export const BASE_URL = "https://s.2bcnm.top";
 export const header = {

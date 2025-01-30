@@ -109,6 +109,7 @@ const closeModal = () => {
 .modal-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   margin: 0 -25px;
   padding: 0 25px;
   border-radius: 15px;

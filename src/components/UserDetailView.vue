@@ -129,12 +129,14 @@
       </div>
     </div>
   </div>
-  <ExportCard
-    ref="exportCardRef"
-    :user="user"
-    :show-detail="showDetail"
-    :user-info="userInfo"
-  />
+  <div class="export-container">
+    <ExportCard
+      ref="exportCardRef"
+      :user="user"
+      :show-detail="showDetail"
+      :user-info="userInfo"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -446,5 +448,14 @@ const handleExportCard = () => {
     padding: 8px;
     font-size: 13px;
   }
+}
+
+/* 添加 export-container 样式 */
+.export-container {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 </style>

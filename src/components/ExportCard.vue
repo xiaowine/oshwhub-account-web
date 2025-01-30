@@ -1,5 +1,6 @@
 <template>
   <div class="export-card" ref="exportCardRef">
+    <div class="watermark">OshwHub<br />用户卡片</div>
     <div class="card-content" :class="{ 'with-detail': showDetail }">
       <!-- 左侧基础信息部分 -->
       <div class="basic-section">
@@ -11,6 +12,7 @@
         />
         <h3 class="card-title">{{ user.nickname }}</h3>
         <p class="card-username">@{{ user.username }}</p>
+        <p class="user-tag">{{ user.team ? "团队账号" : "个人账号" }}</p>
 
         <!-- 基础统计信息 -->
         <div class="card-stats">
@@ -31,20 +33,18 @@
         <!-- 添加账号基本信息到左侧 -->
         <div v-if="showDetail" class="basic-info-group">
           <div class="info-item">
-            <span class="info-label">账号类型</span>
-            <span class="info-value">{{
-              user.team ? "团队账号" : "个人账号"
-            }}</span>
+            <span class="info-label">积分</span>
+            <span class="info-value">{{ userInfo?.result.points }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">得分</span>
+            <span class="info-value">{{ user?._score }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">FB官方</span>
             <span class="info-value">{{
               userInfo?.result.is_fp_office_account ? "是" : "否"
             }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">积分</span>
-            <span class="info-value">{{ userInfo?.result.points }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">注册时间</span>
@@ -218,12 +218,14 @@ defineExpose({
   overflow: hidden;
   padding: 20px;
   box-shadow: var(--shadow);
-  width: v-bind("showDetail ? '700px' : '300px'");
+  width: v-bind("showDetail ? 'min(700px, 95vw)' : '300px'");
+  position: relative;
 }
 
 .card-content {
   display: flex;
   gap: 20px;
+  flex-wrap: v-bind("showDetail ? 'wrap' : 'nowrap'");
 }
 
 .card-content.with-detail {
@@ -233,6 +235,7 @@ defineExpose({
 .basic-section {
   flex: 1;
   min-width: 280px;
+  max-width: v-bind("showDetail ? '100%' : '300px'");
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -241,8 +244,10 @@ defineExpose({
 
 .detail-section {
   flex: 1;
-  padding-left: 20px;
-  border-left: 1px solid var(--border-color);
+  min-width: 280px;
+  padding: v-bind("showDetail ? '20px 0 0 0' : '0 0 0 20px'");
+  border-left: v-bind("showDetail ? 'none' : '1px solid var(--border-color)'");
+  border-top: v-bind("showDetail ? '1px solid var(--border-color)' : 'none'");
 }
 
 .detail-group {
@@ -258,7 +263,7 @@ defineExpose({
 
 .detail-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 12px;
 }
 
@@ -353,5 +358,31 @@ defineExpose({
 .info-value {
   color: var(--text-color);
   font-weight: 500;
+}
+
+.user-tag {
+  margin: 5px 0;
+  padding: 2px 8px;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.8em;
+}
+
+.watermark {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--primary-color);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 0.9em;
+  opacity: 0.9;
+  z-index: 1;
+  box-shadow: var(--shadow);
+  text-align: center;
+  font-weight: 500;
+  letter-spacing: 1px;
 }
 </style>
