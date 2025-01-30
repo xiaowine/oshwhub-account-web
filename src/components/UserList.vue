@@ -78,7 +78,12 @@ const emit = defineEmits(["loadMore"]);
 // 处理头像加载失败
 const handleAvatarError = (e: Event) => {
   const img = e.target as HTMLImageElement;
+  // 检查是否已经处理过加载失败
+  if (img.dataset.fallbackLoaded === "true") return;
+
   img.src = defaultAvatar;
+  // 设置标记表示已经加载过默认头像
+  img.dataset.fallbackLoaded = "true";
 };
 
 // 检测滚动到底部的函数

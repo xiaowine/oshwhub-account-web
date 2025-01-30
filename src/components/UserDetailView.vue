@@ -33,12 +33,16 @@
           <span v-if="isAuthor" class="author-tag">作者</span>
         </h3>
         <p class="user-tag">{{ user.team ? "团队账号" : "个人账号" }}</p>
-        <a :href="userHomeUrl" target="_blank" class="home-link">
-          <button class="visit-btn">
+        <div class="action-buttons">
+          <a :href="userHomeUrl" target="_blank" class="action-button">
             <span class="icon">🏠</span>
             访问主页
+          </a>
+          <button class="action-button" @click="handleExportCard">
+            <span class="icon">💾</span>
+            导出卡片
           </button>
-        </a>
+        </div>
         <div v-if="isAuthor" class="author-menu">
           <a
             href="https://github.com/xiaowine"
@@ -125,6 +129,7 @@
       </div>
     </div>
   </div>
+  <ExportCard ref="exportCardRef" :user="user" />
 </template>
 
 <script setup lang="ts">
@@ -132,22 +137,28 @@ import { ref, onMounted, computed } from "vue";
 import { defaultAvatar } from "../service/services";
 import type { SearchUserInfo, UserInfoResponse } from "../types";
 import { getUserInfo } from "../service/services";
+import ExportCard from "./ExportCard.vue";
 
 const userInfo = ref<UserInfoResponse>();
 
 const props = defineProps<{
   user: SearchUserInfo;
 }>();
+
 onMounted(() => {
   get_create_time(props.user.uuid);
 });
+
 const get_create_time = async (uuid: string) => {
   try {
     userInfo.value = await getUserInfo(uuid);
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const showDetail = ref(false);
+const exportCardRef = ref<InstanceType<typeof ExportCard>>();
 
 const userHomeUrl = computed(() => {
   return `https://oshwhub.com/${props.user.username}`;
@@ -160,6 +171,10 @@ const isAuthor = computed(() => {
 const handleAvatarError = (e: Event) => {
   const img = e.target as HTMLImageElement;
   img.src = defaultAvatar;
+};
+
+const handleExportCard = () => {
+  exportCardRef.value?.exportAsImage();
 };
 </script>
 
@@ -265,12 +280,14 @@ const handleAvatarError = (e: Event) => {
   transition: var(--transition);
   flex: 1;
   min-width: 80px;
+  border: 1px solid transparent;
 }
 
 .toggle-btn.active {
   background: var(--primary-color);
   color: white;
   box-shadow: none;
+  border-radius: 10px;
 }
 
 .toggle-btn:hover:not(.active) {
@@ -382,5 +399,47 @@ const handleAvatarError = (e: Event) => {
 
 .menu-item .icon {
   font-size: 1.2em;
+}
+
+/* 导出按钮样式 */
+.action-buttons {
+  display: flex;
+  flex-direction: row; /* 改为横向排列 */
+  gap: 12px;
+  width: 100%;
+  max-width: 300px; /* 增加最大宽度适应横向布局 */
+  margin: 15px 0;
+}
+
+.action-button {
+  flex: 1; /* 让按钮平均分配空间 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border: none;
+  border-radius: var(--border-radius);
+  background: var(--primary-color);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+  min-width: 120px; /* 确保按钮最小宽度 */
+}
+
+@media (max-width: 768px) {
+  .action-buttons {
+    max-width: 280px; /* 调整移动端最大宽度 */
+    gap: 8px; /* 减小移动端按钮间距 */
+  }
+
+  .action-button {
+    min-width: 100px; /* 调整移动端最小宽度 */
+    padding: 8px;
+    font-size: 13px;
+  }
 }
 </style>
