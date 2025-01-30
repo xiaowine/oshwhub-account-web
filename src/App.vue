@@ -3,11 +3,19 @@
     <SearchInputControl
       class="card"
       v-model:keywords="keywords"
-      v-model:pageSize="pageSize"
       v-model:fuzzySearch="fuzzySearch"
+      v-model:sortType="sortType"
       @handleSearchEvent="handleSearch"
     />
-    <UserList :users="searchResults" :error="error" class="card" />
+    <UserList
+      :users="searchResults"
+      :error="error"
+      :loading="loading"
+      :hasMore="hasMore"
+      @loadMore="loadMore"
+      class="card"
+    />
+    <BackToTop />
   </div>
 </template>
 
@@ -16,37 +24,73 @@ import { ref, onMounted } from "vue";
 import SearchInputControl from "./components/SearchInputControl.vue";
 import UserList from "./components/UserList.vue";
 import { searchUsers } from "./service/services";
-import type { SearchUserInfo } from "./types";
+import type { SearchUserInfo, SortType } from "./types";
+import BackToTop from "./components/BackToTop.vue";
 
 const keywords = ref("xiao_wine");
-const pageSize = ref(10);
+// 模糊搜索
 const fuzzySearch = ref(true);
+
 const searchResults = ref<SearchUserInfo[]>([]);
+// 错误信息
 const error = ref<string>("");
+
+const pageSize = 20;
+const currentPage = ref(1);
+// 正在加载数据
+const loading = ref(false);
+// 是否还有更多数据
+const hasMore = ref(true);
+
+const sortType = ref<SortType>("");
 
 onMounted(() => {
   handleSearch();
 });
+
 const handleSearch = async () => {
   error.value = "";
   searchResults.value = [];
+  currentPage.value = 1;
+  hasMore.value = true;
+  await loadMore();
+};
+
+const loadMore = async () => {
+  // 防止重复加载
+  if (loading.value || !hasMore.value || error.value) return;
+
+  loading.value = true;
 
   try {
-    const data = await searchUsers(keywords.value, pageSize.value);
+    const data = await searchUsers(
+      keywords.value,
+      pageSize,
+      currentPage.value,
+      sortType.value
+    );
 
     if (data.result.lists.length === 0) {
-      error.value = "无搜索结果";
+      if (currentPage.value === 1) {
+        error.value = "无搜索结果";
+      }
+      hasMore.value = false;
     } else if (fuzzySearch.value) {
-      searchResults.value = data.result.lists;
+      searchResults.value = [...searchResults.value, ...data.result.lists];
+      hasMore.value = currentPage.value * pageSize < data.result.total;
+      currentPage.value++;
     } else {
       if (data.result.lists[0].nickname === keywords.value) {
         searchResults.value = [data.result.lists[0]];
       } else {
         error.value = "未找到完全匹配的用户";
       }
+      hasMore.value = false;
     }
   } catch (err) {
     error.value = err instanceof Error ? err.message : "搜索失败";
+  } finally {
+    loading.value = false;
   }
 };
 </script>

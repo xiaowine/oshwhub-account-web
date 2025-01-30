@@ -61,3 +61,5 @@ export interface BaseResult {
   success: boolean;
   code: number;
 }
+
+export type SortType = "" | "follower_count";

@@ -3,7 +3,7 @@
     <h2 class="search-title">用户搜索</h2>
     <div class="search-container">
       <div class="input-group">
-        <label for="keywords">用户名</label>
+        <label for="keywords">用户昵称</label>
         <input
           id="keywords"
           :value="keywords"
@@ -13,26 +13,7 @@
           type="text"
           placeholder="请输入用户名或昵称"
         />
-        <span class="input-description">支持搜索用户名或昵称，至少2个字符</span>
-      </div>
-
-      <div class="input-group">
-        <label for="pageSize">获取数量</label>
-        <input
-          id="pageSize"
-          :value="pageSize"
-          @input="
-            $emit(
-              'update:pageSize',
-              Number(($event.target as HTMLInputElement).value)
-            )
-          "
-          type="number"
-          min="1"
-          max="50"
-          placeholder="显示数量"
-        />
-        <span class="input-description">设置获取的结果数量（1-50）</span>
+        <span class="input-description">支持搜索昵称，至少2个字符</span>
       </div>
 
       <div class="checkbox-group">
@@ -54,6 +35,21 @@
         >
       </div>
 
+      <div class="select-group">
+        <label for="sortType">排序方式</label>
+        <select
+          id="sortType"
+          :value="sortType"
+          @change="
+            $emit('update:sortType', ($event.target as HTMLSelectElement).value)
+          "
+        >
+          <option value="">综合排序</option>
+          <option value="follower_count">粉丝数</option>
+        </select>
+        <span class="input-description">选择结果的排序方式</span>
+      </div>
+
       <button @click="handleSearch">
         <span class="search-icon">🔍</span>
         搜索
@@ -63,16 +59,18 @@
 </template>
 
 <script setup lang="ts">
+import type { SortType } from "../types";
+
 const emit = defineEmits([
   "update:keywords",
-  "update:pageSize",
   "update:fuzzySearch",
+  "update:sortType",
   "handleSearchEvent",
 ]);
 defineProps<{
   keywords: string;
-  pageSize: number;
   fuzzySearch: boolean;
+  sortType: SortType;
 }>();
 
 const handleSearch = () => {
@@ -275,5 +273,30 @@ button:active {
   .search-title {
     font-size: 1.1rem;
   }
+}
+
+.select-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+select {
+  padding: 8px 12px;
+  background: var(--background-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  transition: var(--transition);
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+  background: var(--card-background);
 }
 </style>

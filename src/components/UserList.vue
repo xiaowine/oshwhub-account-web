@@ -10,7 +10,11 @@
       >
         <img
           :src="
-            user.avatar.startsWith('//') ? 'https:' + user.avatar : user.avatar
+            user.avatar.startsWith('//')
+              ? 'https:' + user.avatar
+              : user.avatar === ''
+              ? '/image/avatar-default.png'
+              : user.avatar
           "
           class="avatar"
           :alt="user.nickname"
@@ -22,6 +26,12 @@
       </div>
     </div>
     <div v-else class="no-data">暂无数据</div>
+
+    <div v-if="!error && users.length > 0" :class="['load-more', { loading }]">
+      <div v-if="loading" class="loading-indicator">加载中...</div>
+      <div v-else-if="!hasMore" class="no-more">没有更多数据了</div>
+    </div>
+
     <ModalWrapper v-model="showModal" title="用户详情" v-if="showModal">
       <UserDetailView :user="selectedUser!" />
     </ModalWrapper>
@@ -29,14 +39,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import type { SearchUserInfo } from "../types";
 import ModalWrapper from "./ModalWrapper.vue";
 import UserDetailView from "./UserDetailView.vue";
 
 defineProps<{
   users: SearchUserInfo[];
-  error?: string;
+  error: string;
+  loading: boolean;
+  hasMore: boolean;
 }>();
 
 const showModal = ref(false);
@@ -46,6 +58,46 @@ const showUserDetails = (user: SearchUserInfo) => {
   selectedUser.value = user;
   showModal.value = true;
 };
+
+const emit = defineEmits(["loadMore"]);
+
+// 检测滚动到底部的函数
+const checkScroll = () => {
+  const scrollHeight = Math.max(
+    document.documentElement.scrollHeight,
+    document.body.scrollHeight
+  );
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const clientHeight =
+    window.innerHeight || document.documentElement.clientHeight;
+
+  // 当距离底部小于100px时触发加载
+  if (scrollHeight - scrollTop - clientHeight < 100) {
+    emit("loadMore");
+  }
+};
+
+// 使用节流函数优化滚动事件
+let timer: number | null = null;
+const throttleScroll = () => {
+  if (timer === null) {
+    timer = window.setTimeout(() => {
+      checkScroll();
+      timer = null;
+    }, 200);
+  }
+};
+
+onMounted(() => {
+  window.addEventListener("scroll", throttleScroll);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("scroll", throttleScroll);
+  if (timer) {
+    clearTimeout(timer);
+  }
+});
 </script>
 
 <style scoped>
@@ -189,5 +241,95 @@ const showUserDetails = (user: SearchUserInfo) => {
 
 .detail-info p {
   margin: 8px 0;
+}
+
+.load-more {
+  text-align: center;
+  margin: 20px 0;
+  min-height: 50px;
+  position: relative;
+}
+
+.load-more.loading {
+  margin-bottom: 60px; /* 为固定定位的加载指示器留出空间 */
+}
+
+.loading-indicator {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-background);
+  padding: 8px 16px;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loading-indicator::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--text-secondary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.no-more {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  padding: 10px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .loading-indicator {
+    bottom: 16px;
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+
+  .loading-indicator::before {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.loading,
+.no-more {
+  text-align: center;
+  padding: 10px;
+  padding-bottom: 30px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--text-secondary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  margin-right: 8px;
+  animation: spin 1s linear infinite;
+  vertical-align: middle;
 }
 </style>

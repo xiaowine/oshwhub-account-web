@@ -1,4 +1,4 @@
-import type { SearchResult, UserInfoResponse } from "../types";
+import type { SearchResult, SortType, UserInfoResponse } from "../types";
 export const BASE_URL = "https://s.2bcnm.top";
 export const header = {
   accept: "application/json, text/plain, */*",
@@ -25,7 +25,9 @@ export const getUserInfo = async (uuid: string): Promise<UserInfoResponse> => {
 
 export const searchUsers = async (
   keywords: string,
-  pageSize: number
+  pageSize: number = 20,
+  page: number = 1,
+  sort: SortType = ""
 ): Promise<SearchResult> => {
   if (keywords.length < 2 || keywords.length > 128) {
     throw new Error("关键词长度应在 2-128 之间");
@@ -37,8 +39,8 @@ export const searchUsers = async (
       type: "user",
       keywords,
       category: "all",
-      sort: "",
-      page: 1,
+      sort,
+      page,
       pageSize: Number(pageSize),
     }),
     method: "POST",
